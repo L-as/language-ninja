@@ -2,7 +2,6 @@ cabal-version:            3.0
 name:                     language-ninja
 version:                  0.3.0
 stability:                Experimental
-category:                 Language
 copyright:                Copyright 2017 Awake Security
 author:                   Awake Security
 maintainer:               Las Safin <me@las.rs>
@@ -55,12 +54,12 @@ common c
     TypeOperators
     UndecidableInstances
     ViewPatterns
-    ghc-options:
-      -Wall -Wcompat -Wincomplete-uni-patterns
-      -Wmissing-export-lists -Wincomplete-record-updates
-      -Wmissing-deriving-strategies -Wno-name-shadowing -Wunused-foralls
-      -fprint-explicit-foralls -fprint-explicit-kinds
-      -O2
+  ghc-options:
+    -Wall -Wcompat -Wincomplete-uni-patterns
+    -Wmissing-export-lists -Wincomplete-record-updates
+    -Wmissing-deriving-strategies -Wno-name-shadowing -Wunused-foralls
+    -fprint-explicit-foralls -fprint-explicit-kinds
+    -O2
 
 library
   import: c
