@@ -68,15 +68,6 @@ common c
      ghc-options:       -Wall
                         -g
 
-common x
-  import: c
-  build-depends:
-    , language-ninja
-    , aeson-pretty ^>= 0.8
-    , optparse-generic ^>= 1.4.7
-  main-is:              Main.hs
-  ghc-options: -threaded
-
 library
   import: c
   hs-source-dirs:       library
@@ -129,7 +120,12 @@ library
     Language.Ninja.Misc.Positive
 
 test-suite tests
-  import: x
+  import: c
+  build-depends:
+    , language-ninja
+    , aeson-pretty ^>= 0.8
+    , optparse-generic ^>= 1.4.7
+  ghc-options: -threaded
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
   main-is: Tests.hs
@@ -157,18 +153,3 @@ test-suite tests
     , turtle ^>= 1.5
     , unordered-containers >= 0.2 && < 0.3
     , versions
-
-executable ninja-lex
-  import: x
-  hs-source-dirs:       executables/ninja-lex
-  main-is: Main.hs
-
-executable ninja-parse
-  import: x
-  hs-source-dirs:       executables/ninja-parse
-  main-is: Main.hs
-
-executable ninja-compile
-  import: x
-  hs-source-dirs:       executables/ninja-compile
-  main-is: Main.hs

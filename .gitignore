@@ -28,3 +28,4 @@ TAGS
 tags
 misc/jquery-*.js/dist-newstyle
 /dist-newstyle
+/cabal.project.local
