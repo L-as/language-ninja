@@ -28,13 +28,14 @@
 
     overlay = final: prev: {
       haskellPackages = prev.haskellPackages.override {
-        overrides = self.haskellOverlay final final.haskell.lib.compose;
+        overrides = self.haskellOverlay final;
       };
     };
 
     packages = perSystem (system: {
       inherit ((nixpkgsFor system).haskellPackages) language-ninja;
     });
+    defaultPackage = perSystem (system: self.packages.${system}.language-ninja);
 
     devShell = perSystem (system:
       let pkgs = nixpkgsFor system; in
