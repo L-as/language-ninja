@@ -113,12 +113,14 @@ import           GHC.Exts               (Constraint)
 import qualified Language.Ninja.AST     as AST
 import qualified Language.Ninja.Misc    as Misc
 
+import Data.Void (Void)
+
 --------------------------------------------------------------------------------
 
 -- | A @megaparsec@ parser.
 --
 --   @since 0.1.0
-type Parser m a = M.ParsecT M.Dec Text m a
+type Parser m = M.ParsecT Void Text m
 
 -- | The type of annotations returned by the lexer.
 --
@@ -130,14 +132,14 @@ type Ann = Misc.Spans
 -- | This class is kind of like 'DeltaParsing' from @trifecta@.
 --
 --   @since 0.1.0
-class (Monad m) => PositionParsing m where
+class (Monad m, MonadFail m) => PositionParsing m where
   getPosition :: m Misc.Position
 
 -- | Instance for 'M.ParsecT' from @megaparsec@.
 --
 --   @since 0.1.0
-instance PositionParsing (M.ParsecT M.Dec Text m) where
-  getPosition = convert <$> M.getPosition
+instance PositionParsing (Parser m) where
+  getPosition = convert <$> M.getSourcePos
     where
       convert :: M.SourcePos -> Misc.Position
       convert (M.SourcePos fp line column)
@@ -148,6 +150,7 @@ instance PositionParsing (M.ParsecT M.Dec Text m) where
       toColumn :: M.Pos -> Misc.Column
       toLine   = M.unPos .> fromIntegral
       toColumn = M.unPos .> fromIntegral
+
 
 -- | Surround a section of parsers in 'getPosition' calls and return the
 --   associated 'Misc.Spans'. Note that if a call of this function wraps over

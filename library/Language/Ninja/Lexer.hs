@@ -112,7 +112,8 @@ import           Data.Maybe                 (catMaybes, fromMaybe)
 import           Flow                       ((.>), (|>))
 
 import qualified Text.Megaparsec            as M
-import qualified Text.Megaparsec.Lexer      as M.Lexer
+import qualified Text.Megaparsec.Char            as M
+import qualified Text.Megaparsec.Char.Lexer      as M.Lexer
 
 import qualified Language.Ninja.AST         as AST
 import qualified Language.Ninja.Errors      as Errors
@@ -300,7 +301,7 @@ equationP = debugP "equationP" $ do
 
 nameP :: Lexer.Parser m (Lexer.LName Lexer.Ann)
 nameP = Lexer.spanned varDotP
-        |> fmap (second (Text.pack .> Text.encodeUtf8))
+        |> fmap (second (Text.encodeUtf8))
         |> fmap (uncurry Lexer.MkLName)
         |> M.Lexer.lexeme spaceP
         |> debugP "nameP"
@@ -316,8 +317,8 @@ outputP = Lexer.spanned (M.some (dollarP <|> litP))
           |> M.Lexer.lexeme spaceP
   where
     litP :: Lexer.Parser m (AST.Expr Lexer.Ann)
-    litP = Lexer.spanned (M.some (M.satisfy isOutputChar))
-           |> fmap (second Text.pack .> uncurry AST.Lit)
+    litP = Lexer.spanned (Text.pack <$> M.some (M.satisfy isOutputChar))
+           |> fmap (uncurry AST.Lit)
 
     isOutputChar :: Char -> Bool
     isOutputChar '$'             = False
@@ -355,7 +356,7 @@ exprP = Lexer.spanned (M.some (dollarP <|> litP))
 dollarP :: Lexer.Parser m (AST.Expr Lexer.Ann)
 dollarP = debugP "dollarP"
           (M.char '$'
-           *> ([ makeLit (M.string "$")
+           *> ([ makeLit (M.string ("$" :: Text))
                , makeLit (M.string " ")
                , makeLit (M.string ":")
                , makeLit ((M.eol *> M.many M.separatorChar *> pure ""))
@@ -363,21 +364,21 @@ dollarP = debugP "dollarP"
                , makeVar varP
                ] |> asum))
   where
-    makeLit :: Lexer.Parser m String -> Lexer.Parser m (AST.Expr Lexer.Ann)
-    makeLit p = Lexer.spanned p |> fmap (second Text.pack .> uncurry AST.Lit)
+    makeLit :: Lexer.Parser m Text -> Lexer.Parser m (AST.Expr Lexer.Ann)
+    makeLit p = Lexer.spanned p |> fmap (uncurry AST.Lit)
 
-    makeVar :: Lexer.Parser m String -> Lexer.Parser m (AST.Expr Lexer.Ann)
-    makeVar p = Lexer.spanned p |> fmap (second Text.pack .> uncurry AST.Var)
+    makeVar :: Lexer.Parser m Text -> Lexer.Parser m (AST.Expr Lexer.Ann)
+    makeVar p = Lexer.spanned p |> fmap (uncurry AST.Var)
 
-varDotP :: Lexer.Parser m String
-varDotP = M.some (M.alphaNumChar <|> M.oneOf ['/', '-', '_', '.'])
+varDotP :: Lexer.Parser m Text
+varDotP = (Text.pack <$> M.some (M.alphaNumChar <|> M.oneOf ['/', '-', '_', '.']))
           |> debugP "varDotP"
 
-varP :: Lexer.Parser m String
-varP = M.some (M.alphaNumChar <|> M.oneOf ['/', '-', '_'])
+varP :: Lexer.Parser m Text
+varP = (Text.pack <$> M.some (M.alphaNumChar <|> M.oneOf ['/', '-', '_']))
        |> debugP "varP"
 
-symbolP :: String -> Lexer.Parser m String
+symbolP :: Text -> Lexer.Parser m Text
 symbolP = M.Lexer.symbol spaceP
 
 spaceP :: Lexer.Parser m ()
@@ -399,8 +400,8 @@ beginningOfLine = do
   col <- Lens.view Misc.positionCol <$> Lexer.getPosition
   unless (col == 1) (fail "beginningOfLine failed")
 
-debugP :: (Show a) => String -> Lexer.Parser m a -> Lexer.Parser m a
-debugP str p = M.label str p -- M.dbg str p
+debugP :: (Show a) => Text -> Lexer.Parser m a -> Lexer.Parser m a
+debugP str p = M.label (Text.unpack str) p -- M.dbg str p
   where
     -- this shuts up the compiler wrt the Show constraint
     _ = show <$> p

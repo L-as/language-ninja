@@ -80,15 +80,6 @@ instance (Monad m, SC.CoSerial m a) => SC.CoSerial m (HS.HashSet a) where
 
 --------------------------------------------------------------------------------
 
-instance (Monad m, SC.Serial m a) => SC.Serial m (NE.NonEmpty a) where
-  series = SC.series |> fmap (pure .> NE.fromList)
-  -- series = SC.series |> fmap (SC.getNonEmpty .> NE.fromList)
-
-instance (Monad m, SC.CoSerial m a) => SC.CoSerial m (NE.NonEmpty a) where
-  coseries = SC.coseries .> fmap (\f -> NE.toList .> f)
-
---------------------------------------------------------------------------------
-
 instance (Monad m) => SC.Serial m Text.Text where
   series = foldr1 (\/) (map pure testText)
 

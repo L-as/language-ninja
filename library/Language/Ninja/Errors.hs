@@ -122,7 +122,7 @@ data NinjaError
     --
     --   @since 0.1.0
     NinjaCompileError !CompileError
-  deriving (Eq, Show, Generic)
+  deriving (Show, Generic)
 
 instance Exception NinjaError
 

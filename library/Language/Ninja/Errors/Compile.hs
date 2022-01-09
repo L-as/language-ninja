@@ -89,6 +89,8 @@ import           Data.Foldable             (toList)
 
 import           Flow                      ((.>), (|>))
 
+import Data.Void (Void)
+
 --------------------------------------------------------------------------------
 
 -- | The type of errors encountered during compilation.
@@ -142,27 +144,6 @@ throwGenericCompileError msg = throwCompileError (GenericCompileError msg)
 --   @since 0.1.0
 instance Exception CompileError
 
--- | Converts to @{tag: …, value: …}@.
---
---   @since 0.1.0
-instance Aeson.ToJSON CompileError where
-  toJSON = go
-    where
-      go (GenericCompileError text) = obj "generic-compile-error" text
-      go (CompileMetaError    cme)  = obj "compile-meta-error"    cme
-      go (CompileBuildError   cbe)  = obj "compile-build-error"   cbe
-      go (CompileRuleError    cre)  = obj "compile-rule-error"    cre
-      go (CompilePhonyError   cpe)  = obj "compile-phony-error"   cpe
-      go (CompileDefaultError cde)  = obj "compile-default-error" cde
-      go (CompilePoolError    cpe)  = obj "compile-pool-error"    cpe
-
-      obj :: (Aeson.ToJSON x) => Text -> x -> Aeson.Value
-      obj tag value = Aeson.object ["tag" .= tag, "value" .= value]
-
--- TODO: add FromJSON instance
--- TODO: add Arbitrary instance
--- TODO: add (Co)Serial instance
-
 --------------------------------------------------------------------------------
 
 -- | The type of errors encountered while compiling Ninja metadata.
@@ -197,58 +178,6 @@ throwGenericCompileMetaError = GenericCompileMetaError .> throwCompileMetaError
 throwVersionParseFailure :: (MonadError CompileError m)
                          => Ver.ParsingError -> m a
 throwVersionParseFailure pe = throwCompileMetaError (VersionParseFailure pe)
-
--- | Converts to @{tag: …, value: …}@.
---
---   @since 0.1.0
-instance Aeson.ToJSON CompileMetaError where
-  toJSON = go
-    where
-      go (GenericCompileMetaError t) = obj "generic-compile-meta-error" t
-      go (VersionParseFailure     e) = obj "version-parse-failure"      (peJ e)
-
-      -- TODO: deduplicate against the implementation in Errors.Parser
-
-      peJ :: M.ParseError Char M.Dec -> Aeson.Value
-      peJ (decomposePE -> (pos, custom, unexpected, expected))
-        = [ "pos"        .= (posJ     <$> pos)
-          , "unexpected" .= (errItemJ <$> unexpected)
-          , "expected"   .= (errItemJ <$> expected)
-          , "custom"     .= (decJ     <$> custom)
-          ] |> Aeson.object
-
-      decomposePE :: M.ParseError Char M.Dec
-                  -> ( [M.SourcePos], [M.Dec]
-                     , [M.ErrorItem Char], [M.ErrorItem Char] )
-      decomposePE (M.ParseError {..})
-        = ( toList errorPos, toList errorCustom
-          , toList errorUnexpected, toList errorExpected )
-
-      posJ :: M.SourcePos -> Aeson.Value
-      posJ (M.SourcePos {..}) = [ "name"   .= sourceName
-                                , "line"   .= M.unPos sourceLine
-                                , "column" .= M.unPos sourceColumn
-                                ] |> Aeson.object
-
-      errItemJ :: M.ErrorItem Char -> Aeson.Value
-      errItemJ (M.Tokens xs) = Aeson.toJSON (toList xs)
-      errItemJ (M.Label  xs) = Aeson.toJSON (toList xs)
-      errItemJ M.EndOfInput  = "eof"
-
-      decJ :: M.Dec -> Aeson.Value
-      decJ (M.DecFail message)        = [ "message"  .= message
-                                        ] |> Aeson.object |> obj "fail"
-      decJ (M.DecIndentation ord x y) = [ "ordering" .= ord
-                                        , "start"    .= M.unPos x
-                                        , "end"      .= M.unPos y
-                                        ] |> Aeson.object |> obj "indentation"
-
-      obj :: (Aeson.ToJSON x) => Text -> x -> Aeson.Value
-      obj tag value = Aeson.object ["tag" .= tag, "value" .= value]
-
--- TODO: add FromJSON instance
--- TODO: add Arbitrary instance
--- TODO: add (Co)Serial instance
 
 --------------------------------------------------------------------------------
 

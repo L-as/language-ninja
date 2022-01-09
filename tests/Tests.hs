@@ -74,10 +74,6 @@ import qualified Test.Tasty.Runners.Html    as Test
 import qualified Test.Tasty.QuickCheck      as Test.QC
 import qualified Test.Tasty.SmallCheck      as Test.SC
 
-import qualified Test.Tasty.Lens.Iso        as Test.Iso
-import qualified Test.Tasty.Lens.Lens       as Test.Lens
-import qualified Test.Tasty.Lens.Prism      as Test.Prism
-
 import           Test.QuickCheck            ((===))
 import qualified Test.QuickCheck            as QC
 import           Test.QuickCheck.Instances  ()
@@ -94,7 +90,6 @@ import qualified Turtle
 
 import           Flow                       ((.>), (|>))
 
-import qualified Tests.Lint                 as Lint
 import           Tests.Orphans              ()
 import qualified Tests.ReferenceLexer       as RefLex
 
@@ -341,206 +336,6 @@ aesonTests
     typeTimeout :: Test.Timeout
     typeTimeout = Test.mkTimeout 20000000 -- 20 seconds
 
-opticsTests :: TestTree
-opticsTests
-  = Test.testGroup "optics"
-    [ testModule "Language.Ninja.IR.Build"
-      [ testType "Build" [] -- TODO: combinatorial explosion
-        -- [ testLens 1 "buildRule" IR.buildRule
-        -- , testLens 1 "buildOuts" IR.buildOuts
-        -- , testLens 1 "buildDeps" IR.buildDeps
-        -- ]
-      ]
-    , testModule "Language.Ninja.IR.Meta"
-      [ testType "Meta"
-        [ testLens def "metaReqVersion" IR.metaReqVersion
-        , testLens def "metaBuildDir"   IR.metaBuildDir
-        ]
-      ]
-    , testModule "Language.Ninja.IR.Ninja"
-      [ testType "Ninja" [] -- TODO: combinatorial explosion
-        -- [ testLens 1 "ninjaMeta"     IR.ninjaMeta
-        -- , testLens 1 "ninjaBuilds"   IR.ninjaBuilds
-        -- , testLens 1 "ninjaPhonys"   IR.ninjaPhonys
-        -- , testLens 1 "ninjaDefaults" IR.ninjaDefaults
-        -- , testLens 1 "ninjaPools"    IR.ninjaPools
-        -- ]
-      ]
-    , testModule "Language.Ninja.IR.Pool"
-      [ testType "Pool"
-        [
-        ]
-      , testType "PoolName"
-        [ testIso def "poolNameText" IR.poolNameText
-        ]
-      , testType "PoolDepth"
-        [ testIso def "poolDepthPositive" IR.poolDepthPositive
-        ]
-      ]
-    , testModule "Language.Ninja.IR.Rule"
-      [ testType "Rule" [] -- TODO: combinatorial explosion
-        -- [ testLens 1 "ruleName"         IR.ruleName
-        -- , testLens 1 "ruleCommand"      IR.ruleCommand
-        -- , testLens 1 "ruleDescription"  IR.ruleDescription
-        -- , testLens 1 "rulePool"         IR.rulePool
-        -- , testLens 1 "ruleDepfile"      IR.ruleDepfile
-        -- , testLens 1 "ruleSpecialDeps"  IR.ruleSpecialDeps
-        -- , testLens 1 "ruleGenerator"    IR.ruleGenerator
-        -- , testLens 1 "ruleRestat"       IR.ruleRestat
-        -- , testLens 1 "ruleResponseFile" IR.ruleResponseFile
-        -- ]
-      , testType "SpecialDeps"
-        [ testPrism def "_SpecialDepsGCC"  IR._SpecialDepsGCC
-        , testPrism def "_SpecialDepsMSVC" IR._SpecialDepsMSVC
-        ]
-      , testType "ResponseFile"
-        [ testLens def "responseFilePath"    IR.responseFilePath
-        , testLens def "responseFileContent" IR.responseFileContent
-        ]
-      ]
-    , testModule "Language.Ninja.IR.Target"
-      [ testType "Target"
-        [ testIso def "targetIText" IR.targetIText
-        , testIso def "targetText"  IR.targetText
-        ]
-      , testType "Output"
-        [ testLens def "outputTarget" IR.outputTarget
-        ]
-      , testType "Dependency"
-        [ testLens def "dependencyTarget" IR.dependencyTarget
-        , testLens def "dependencyType"   IR.dependencyType
-        ]
-      , testType "DependencyType"
-        [ testPrism def "_NormalDependency"    IR._NormalDependency
-        , testPrism def "_OrderOnlyDependency" IR._OrderOnlyDependency
-        ]
-      ]
-    , testModule "Language.Ninja.AST.Env"
-      [ testType "Env"
-        [ testIso 1 "fromEnv"
-          (AST.fromEnv :: Lens.Iso' (AST.Env Text Int) (AST.Maps Text Int))
-        ]
-      ]
-    , testModule "Language.Ninja.AST.Expr"
-      [ testType "Expr"
-        [ testPrism 4 "_Exprs"
-          (AST._Exprs :: Lens.Prism' (AST.Expr Bool) (Bool, [AST.Expr Bool]))
-        , testPrism 4 "_Lit"
-          (AST._Lit   :: Lens.Prism' (AST.Expr Bool) (Bool, Text))
-        , testPrism 4 "_Var"
-          (AST._Var   :: Lens.Prism' (AST.Expr Bool) (Bool, Text))
-        ]
-      ]
-    , testModule "Language.Ninja.AST.Rule"
-      [ testType "Rule"
-        [ testLens 4 "ruleBind"
-          (AST.ruleBind :: Lens.Lens' (AST.Rule Bool) (HashMap Text (AST.Expr Bool)))
-        ]
-      ]
-    , testModule "Language.Ninja.AST.Ninja"
-      [ testType "Ninja" [] -- TODO: combinatorial explosion
-        -- [ testLens 1 "ninjaRules"
-        --   (AST.ninjaRules     :: Lens.Lens' (AST.Ninja Bool) (HashMap Text (AST.Rule Bool)))
-        -- , testLens 1 "ninjaSingles"
-        --   (AST.ninjaSingles   :: Lens.Lens' (AST.Ninja Bool) (HashMap Text (AST.Build Bool)))
-        -- , testLens 1 "ninjaMultiples"
-        --   (AST.ninjaMultiples :: Lens.Lens' (AST.Ninja Bool) (HashMap (HashSet Text) (AST.Build Bool)))
-        -- , testLens 1 "ninjaPhonys"
-        --   (AST.ninjaPhonys    :: Lens.Lens' (AST.Ninja Bool) (HashMap Text (HashSet Text)))
-        -- , testLens 1 "ninjaDefaults"
-        --   (AST.ninjaDefaults  :: Lens.Lens' (AST.Ninja Bool) (HashSet Text))
-        -- , testLens 1 "ninjaSpecials"
-        --   (AST.ninjaSpecials  :: Lens.Lens' (AST.Ninja Bool) (HashMap Text Text))
-        -- ]
-      ]
-    , testModule "Language.Ninja.AST.Build"
-      [ testType "Build" [] -- TODO: combinatorial explosion
-        -- [ testLens 1 "buildRule"
-        --   (AST.buildRule :: Lens.Lens' (AST.Build Bool) Text)
-        -- , testLens 1 "buildEnv"
-        --   (AST.buildEnv  :: Lens.Lens' (AST.Build Bool) (AST.Env Text Text))
-        -- , testLens 1 "buildDeps"
-        --   (AST.buildDeps :: Lens.Lens' (AST.Build Bool) (AST.Deps Bool))
-        -- , testLens 1 "buildBind"
-        --   (AST.buildBind :: Lens.Lens' (AST.Build Bool) (HashMap Text Text))
-        -- ]
-      ]
-    , testModule "Language.Ninja.AST.Deps"
-      [ testType "Deps"
-        [ testLens def "depsNormal"
-          (AST.depsNormal    :: Lens.Lens' (AST.Deps Bool) (HashSet Text))
-        , testLens def "depsImplicit"
-          (AST.depsImplicit  :: Lens.Lens' (AST.Deps Bool) (HashSet Text))
-        , testLens def "depsOrderOnly"
-          (AST.depsOrderOnly :: Lens.Lens' (AST.Deps Bool) (HashSet Text))
-        ]
-      ]
-    , testModule "Language.Ninja.Misc.Command"
-      [ testType "Command"
-        [ testIso def "commandText" Misc.commandText
-        ]
-      ]
-    , testModule "Language.Ninja.Misc.Path"
-      [ testType "Path"
-        [ testIso def "pathIText"  Misc.pathIText
-        , testIso def "pathText"   Misc.pathText
-        , testIso def "pathString" Misc.pathString
-        , testIso def "pathFP"     Misc.pathFP
-        ]
-      ]
-    , testModule "Language.Ninja.Misc.Located"
-      [ testType "Located"
-        [ testLens 4 "locatedPos"
-          (Misc.locatedPos :: Lens.Lens' (Misc.Located Bool) Misc.Position)
-        , testLens 4 "locatedVal"
-          (Misc.locatedVal :: Lens.Lens' (Misc.Located Bool) Bool)
-        ]
-      , testType "Position"
-        [ testLens 4 "positionFile" Misc.positionFile
-        , testLens 4 "positionLine" Misc.positionLine
-        , testLens 4 "positionCol"  Misc.positionCol
-        ]
-      ]
-    , testModule "Language.Ninja.Misc.IText"
-      [ testType "IText"
-        [ testIso def "itext" Misc.itext
-        ]
-      ]
-    ]
-  where
-    testIso   :: ( Eq s, Eq a, Show s, Show a
-                 , SC.Serial Identity s, SC.Serial IO s, SC.CoSerial IO s
-                 , SC.Serial Identity a, SC.Serial IO a, SC.CoSerial IO a
-                 ) => Int -> TestName -> Lens.Iso' s a -> TestTree
-    testLens  :: ( Eq s, Eq a, Show s, Show a
-                 , SC.Serial IO s, SC.Serial IO a
-                 , SC.Serial Identity a, SC.CoSerial IO a
-                 ) => Int -> TestName -> Lens.Lens' s a -> TestTree
-    testPrism :: ( Eq s, Eq a, Show s, Show a
-                 , SC.Serial IO s, SC.Serial IO a
-                 , SC.Serial Identity a, SC.CoSerial IO a
-                 ) => Int -> TestName -> Lens.Prism' s a -> TestTree
-    testIso   d name i = withDepth d $ Test.testGroup name [Test.Iso.test   i]
-    testLens  d name l = withDepth d $ Test.testGroup name [Test.Lens.test  l]
-    testPrism d name p = withDepth d $ Test.testGroup name [Test.Prism.test p]
-
-    withDepth :: Int -> (TestTree -> TestTree)
-    withDepth depth = Test.localOption (Test.SC.SmallCheckDepth depth)
-
-    testModule :: TestName -> [TestTree] -> TestTree
-    testModule = Test.testGroup
-
-    testType :: TestName -> [TestTree] -> TestTree
-    testType name subtrees = Test.localOption typeTimeout
-                             $ Test.testGroup name subtrees
-
-    def :: Int
-    def = (Test.defaultValue :: Test.SC.SmallCheckDepth)
-          |> toInteger |> fromIntegral
-
-    typeTimeout :: Test.Timeout
-    typeTimeout = Test.mkTimeout 20000000 -- 20 seconds
-
 ingredients :: IO [Test.Ingredient]
 ingredients = [ [Test.htmlRunner]
               , Test.defaultIngredients
@@ -550,16 +345,10 @@ testTree :: IO TestTree
 testTree = do
   ninjas <- forM testFiles parseTestNinja
 
-  haddockTests <- Lint.emptyLintHaddockOptions
-                  |> Lint.addComponentName "language-ninja"
-                  |> Lint.lintHaddock
-
   let tests = Test.testGroup "language-ninja"
               [ Test.testGroup "golden"
                  (fmap (uncurry ninjaTests) (zip testFiles ninjas))
               , aesonTests
-              , opticsTests
-              , haddockTests
               ]
   pure tests
 

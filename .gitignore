@@ -26,4 +26,5 @@ guest
 *.qcow2
 TAGS
 tags
-misc/jquery-*.js
+misc/jquery-*.js/dist-newstyle
+/dist-newstyle
