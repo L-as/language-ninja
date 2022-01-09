@@ -55,18 +55,12 @@ common c
     TypeOperators
     UndecidableInstances
     ViewPatterns
-  if impl(ghc >= 8.0)
-     ghc-options:       -Wcompat -Weverything
-                        -fno-warn-unsafe
-                        -fno-warn-safe
-                        -fno-warn-implicit-prelude
-                        -fno-warn-unused-do-bind
-                        -fno-warn-missed-specialisations
-                        -fno-warn-all-missed-specialisations
-                        -g
-  else
-     ghc-options:       -Wall
-                        -g
+    ghc-options:
+      -Wall -Wcompat -Wincomplete-uni-patterns
+      -Wmissing-export-lists -Wincomplete-record-updates
+      -Wmissing-deriving-strategies -Wno-name-shadowing -Wunused-foralls
+      -fprint-explicit-foralls -fprint-explicit-kinds
+      -O2
 
 library
   import: c

@@ -10,19 +10,21 @@
     nixpkgsFor = system: import nixpkgs { inherit system; overlays = [ self.overlay ]; };
   in
   {
-    haskellOverlay = pkgs: lib: final: prev: {
-      monad-mock = lib.overrideCabal (drv: {
-        sha256 = null;
-        src = pkgs.fetchFromGitHub {
-          owner = "chrismanning";
-          repo = "monad-mock";
-          rev = "96129e57cead06aa9a8888369f35056266eb3e44";
-          sha256 = "H6RRNnYVdgrO+jBzi5C8yxlwZwupA2ofqJ9O+8HI7Ro=";
-        };
-        broken = false;
-      }) prev.monad-mock;
-      language-ninja = final.callPackage ./language-ninja.nix {};
-    };
+    haskellOverlay = pkgs:
+      let lib = pkgs.haskell.lib.compose; in
+      final: prev: {
+        monad-mock = lib.overrideCabal (drv: {
+          sha256 = null;
+          src = pkgs.fetchFromGitHub {
+            owner = "chrismanning";
+            repo = "monad-mock";
+            rev = "96129e57cead06aa9a8888369f35056266eb3e44";
+            sha256 = "H6RRNnYVdgrO+jBzi5C8yxlwZwupA2ofqJ9O+8HI7Ro=";
+          };
+          broken = false;
+        }) prev.monad-mock;
+        language-ninja = final.callPackage ./language-ninja.nix {};
+      };
 
     overlay = final: prev: {
       haskellPackages = prev.haskellPackages.override {
@@ -32,7 +34,6 @@
 
     packages = perSystem (system: {
       inherit ((nixpkgsFor system).haskellPackages) language-ninja;
-      inherit (nixpkgsFor system) bluez;
     });
 
     devShell = perSystem (system:
