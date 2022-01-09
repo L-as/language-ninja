@@ -254,10 +254,11 @@ aesonTests
       , testAesonSC def (Ty.Proxy :: Ty.Proxy IR.DependencyType)
       -- TODO: add Arbitrary instances so we can testAesonQC
       ]
-    , testModule "Language.Ninja.AST.Env"
-      [ testAesonSC def (Ty.Proxy :: Ty.Proxy (AST.Env Text Text))
-      , testAesonQC     (Ty.Proxy :: Ty.Proxy (AST.Env Text Text))
-      ]
+    -- FIXME remove all aeson stuff
+    --, testModule "Language.Ninja.AST.Env"
+    --  [ testAesonSC def (Ty.Proxy :: Ty.Proxy (AST.Env Text Text))
+    --  , testAesonQC     (Ty.Proxy :: Ty.Proxy (AST.Env Text Text))
+    --  ]
     , testModule "Language.Ninja.AST.Expr"
       [ testAesonSC def (Ty.Proxy :: Ty.Proxy (AST.Expr Bool))
       , testAesonQC     (Ty.Proxy :: Ty.Proxy (AST.Expr Bool))
